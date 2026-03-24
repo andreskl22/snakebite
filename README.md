@@ -13,6 +13,8 @@ PyPI supply chain attack detector. Scans Python packages for malicious patterns 
   |___/_||_\__,_|_\_\___|_.__/_|\__\___|
 ```
 
+![snakebite RSS feed monitor](image/image.png)
+
 ## Why
 
 On March 24 2026, `litellm` versions 1.82.7 and 1.82.8 were published to PyPI with a credential-stealing payload. A malicious `.pth` file executed automatically on every Python process startup — no import needed — and exfiltrated SSH keys, cloud credentials, crypto wallets, and Kubernetes secrets to an attacker-controlled domain. The package had 97 million monthly downloads.
