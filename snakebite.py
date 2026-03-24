@@ -28,7 +28,7 @@ import tempfile
 import time
 import zipfile
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 from urllib import request
@@ -698,7 +698,62 @@ class ScanResult:
     error: Optional[str] = None
 
 
-def print_result(r: ScanResult, verbose: bool = False):
+DEFAULT_LOG_FILE = "snakebite_alerts.json"
+
+
+def _load_alerts(path: str) -> list[dict]:
+    try:
+        with open(path, "r") as f:
+            return json.loads(f.read())
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def _save_alert(r: ScanResult, log_path: str):
+    """Append a suspicious finding to the JSON log file."""
+    alerts = _load_alerts(log_path)
+
+    # Determine threat level
+    if r.llm:
+        level = r.llm.get("threat_level", "UNKNOWN")
+        summary = r.llm.get("summary", "")
+        findings = r.llm.get("findings", [])
+    else:
+        max_sev = max(r.hits, key=lambda h: {"CRITICAL": 3, "HIGH": 2, "MEDIUM": 1}.get(h.severity, 0))
+        level = max_sev.severity
+        summary = f"{len(r.hits)} heuristic hit(s), no LLM verification"
+        findings = []
+
+    alert = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "package": r.name,
+        "version": r.version,
+        "threat_level": level,
+        "summary": summary,
+        "pypi_url": f"https://pypi.org/project/{r.name}/{r.version}/" if r.version else f"https://pypi.org/project/{r.name}/",
+        "hits": [
+            {
+                "rule": h.rule,
+                "severity": h.severity,
+                "file": h.file,
+                "line_no": h.line_no,
+                "line": h.line[:200],
+            }
+            for h in r.hits
+        ],
+        "llm_findings": findings,
+        "reviewed": False,
+    }
+
+    alerts.append(alert)
+
+    with open(log_path, "w") as f:
+        json.dump(alerts, f, indent=2, ensure_ascii=False)
+
+    log(f"  Alert saved to {log_path} ({len(alerts)} total)", "INFO")
+
+
+def print_result(r: ScanResult, verbose: bool = False, log_path: str = ""):
     if r.error:
         log(f"{BOLD}{r.name}{NC} {r.version} - {RED}ERROR: {r.error}{NC}", "ERR")
         return
@@ -749,6 +804,10 @@ def print_result(r: ScanResult, verbose: bool = False):
             print(f"  {severity_color(h.severity)}[{h.severity}]{NC} {h.rule} in {h.file}:{h.line_no}")
             print(f"         {DIM}{h.line[:120]}{NC}")
     print()
+
+    # Save to log file if enabled
+    if log_path:
+        _save_alert(r, log_path)
 
 
 # ---------------------------------------------------------------------------
@@ -841,7 +900,7 @@ def mode_feed(args):
                         use_llm=use_llm,
                         model=model, verbose=args.verbose,
                     )
-                    print_result(r, args.verbose)
+                    print_result(r, args.verbose, log_path=args.log)
 
         except KeyboardInterrupt:
             print(f"\n{GRN}Stopped.{NC}")
@@ -890,7 +949,7 @@ def mode_local(args):
             use_llm=use_llm,
             model=model, verbose=args.verbose,
         )
-        print_result(r, args.verbose)
+        print_result(r, args.verbose, log_path=args.log)
 
         if r.error:
             stats["errors"] += 1
@@ -928,6 +987,9 @@ def _add_common_args(p: argparse.ArgumentParser):
                         "chatgpt (OpenAI API), "
                         "ollama:<model>. "
                         "If omitted, you'll be asked interactively.")
+    p.add_argument("--log", default="",
+                   help="Save suspicious findings to JSON file "
+                        "(e.g. --log alerts.json)")
 
 
 def main():
