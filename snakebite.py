@@ -912,6 +912,21 @@ def mode_local(args):
 # CLI
 # ---------------------------------------------------------------------------
 
+def _add_common_args(p: argparse.ArgumentParser):
+    """Add arguments shared by all subcommands."""
+    p.add_argument("--verbose", "-v", action="store_true",
+                   help="Show clean packages and false positives")
+    p.add_argument("--no-llm", action="store_true",
+                   help="Heuristics only, skip LLM analysis")
+    p.add_argument("--model", "-m", default="",
+                   help="LLM backend. Options: "
+                        "claude-code (CLI subscription), "
+                        "claude (Anthropic API), "
+                        "chatgpt (OpenAI API), "
+                        "ollama:<model>. "
+                        "If omitted, you'll be asked interactively.")
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog=NAME,
@@ -919,17 +934,6 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    parser.add_argument("--verbose", "-v", action="store_true",
-                        help="Show clean packages and false positives")
-    parser.add_argument("--no-llm", action="store_true",
-                        help="Heuristics only, skip LLM analysis")
-    parser.add_argument("--model", "-m", default="",
-                        help="LLM backend. Options: "
-                             "claude-code (CLI subscription), "
-                             "claude (Anthropic API), "
-                             "chatgpt (OpenAI API), "
-                             "ollama:<model>. "
-                             "If omitted, you'll be asked interactively.")
     parser.add_argument("--version", action="version", version=f"{NAME} {VERSION}")
 
     sub = parser.add_subparsers(dest="mode", required=True)
@@ -937,10 +941,12 @@ def main():
     feed_p = sub.add_parser("feed", help="Monitor PyPI RSS feed")
     feed_p.add_argument("--loop", type=int, default=0,
                         help="Loop interval in seconds (0 = single run)")
+    _add_common_args(feed_p)
 
     local_p = sub.add_parser("local", help="Scan locally installed packages")
     local_p.add_argument("packages", nargs="*",
                          help="Specific packages (default: all installed)")
+    _add_common_args(local_p)
 
     args = parser.parse_args()
 
