@@ -261,6 +261,7 @@ GitHub Actions example:
 ```
 -m, --model     LLM backend (claude-code, claude, chatgpt, ollama:<model>)
 --no-llm        Heuristics only, skip LLM analysis
+--log FILE      Save suspicious findings to a JSON file
 -v, --verbose   Show clean packages and false positive details
 --version       Show version
 ```
@@ -270,6 +271,44 @@ Feed mode:
 ```
 --loop N        Repeat scan every N seconds (default: single run)
 ```
+
+## Alert log
+
+Use `--log` to save all suspicious findings to a JSON file:
+
+```bash
+# Monitor feed and log alerts
+python3 snakebite.py feed --loop 60 --log alerts.json -m claude-code
+
+# Scan local packages and log alerts
+python3 snakebite.py local --log alerts.json -m claude-code
+```
+
+Each alert is appended to the file with full details:
+
+```json
+{
+  "timestamp": "2026-03-24T18:29:33.450991+00:00",
+  "package": "stats-helpers",
+  "version": "1.0.0",
+  "threat_level": "CRITICAL",
+  "summary": "Litecoin private key stealer",
+  "pypi_url": "https://pypi.org/project/stats-helpers/",
+  "hits": [
+    {
+      "rule": "SETUP_NETWORK",
+      "severity": "CRITICAL",
+      "file": "stats_helpers/__init__.py",
+      "line_no": 36,
+      "line": "response = requests.post("
+    }
+  ],
+  "llm_findings": [...],
+  "reviewed": false
+}
+```
+
+The `"reviewed": false` field lets you track which alerts you've already analyzed. Leave it running with `--loop` and check the file periodically for new findings.
 
 ## Example output
 
